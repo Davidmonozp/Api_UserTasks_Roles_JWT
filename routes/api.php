@@ -24,6 +24,8 @@ Route::middleware([IsUserAuth::class])->group(function () {
     Route::get('tasks', [TaskController::class, 'getTasks']);
     Route::post('/tasks', [TaskController::class, 'addTask']);
     Route::put('/tasks/{id}', [TaskController::class, 'updateTaskById']);
+    Route::delete('/tasks/{id}', [TaskController::class, 'deleteTaskById']);
+
 
 
     Route::middleware([IsAdmin::class])->group(function () {
@@ -31,9 +33,7 @@ Route::middleware([IsUserAuth::class])->group(function () {
         Route::controller(TaskController::class)->group(function () {
             Route::get('/tasks/{id}', 'getTaskById');
             // Route::put('/tasks/{id}', 'updateTaskById');
-            Route::delete('/tasks/{id}', 'deleteTaskById');
-
-
+            // Route::delete('/tasks/{id}', 'deleteTaskById');
         });
     });
 });

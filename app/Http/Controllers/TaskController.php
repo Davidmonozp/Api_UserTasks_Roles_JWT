@@ -55,6 +55,43 @@ class TaskController extends Controller
 
 
     public function updateTaskById(Request $request, $id) {
+
+        $task = Task::find($id);
+
+        if (!$task) {
+            return response()->json(['message' => 'Tarea no encontrada'], 404);
+        }
+
+        $user = auth()->user();
+
+        if ($task->user_id !== $user->id && $user->role !== 'admin') {
+            return response()->json(['message' => 'No autorizado para editar esta tarea'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'sometimes|string',
+            'description' => 'sometimes|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        if ($request->has('title')) {
+            $task->title = $request->input('title');
+        }
+
+        if ($request->has('description')) {
+            $task->description = $request->input('description');
+        }
+
+        $task->save();
+
+        return response()->json(['message' => 'Tarea actualizada correctamente', 'task' => $task], 200);
+    }
+
+
+    public function deleteTaskById($id) {
         // Buscar la tarea por ID
         $task = Task::find($id);
 
@@ -66,82 +103,15 @@ class TaskController extends Controller
         // Obtener el usuario autenticado
         $user = auth()->user();
 
-        // Verificar si el usuario autenticado es el propietario de la tarea o si es un administrador
+        // Verificar si el usuario es el propietario de la tarea o si es un administrador
         if ($task->user_id !== $user->id && $user->role !== 'admin') {
-            return response()->json(['message' => 'No autorizado para editar esta tarea'], 403);
+            return response()->json(['message' => 'No autorizado para eliminar esta tarea'], 403);
         }
 
-        // Validar los campos recibidos
-        $validator = Validator::make($request->all(), [
-            'title' => 'sometimes|string',
-            'description' => 'sometimes|string',
-        ]);
-
-        // Si la validación falla, retornar los errores
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        // Si se pasa el campo 'title', actualizarlo
-        if ($request->has('title')) {
-            $task->title = $request->input('title');
-        }
-
-        // Si se pasa el campo 'description', actualizarlo
-        if ($request->has('description')) {
-            $task->description = $request->input('description');
-        }
-
-        // Guardar la tarea actualizada
-        $task->save();
-
-        // Responder con el mensaje de éxito
-        return response()->json(['message' => 'Tarea actualizada correctamente', 'task' => $task], 200);
-    }
-
-
-
-
-
-    // public function updateTaskById(Request $request, $id) {
-    //     $task = Task::find($id);
-    //     if (!$task) {
-    //         return response()->json(['message' => 'Tarea no encontrada'], 404);
-    //     }
-
-    //     $validator = Validator::make($request->all(), [
-    //         'title' => 'sometimes|string',
-    //         'description' => 'sometimes|string',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['error' => $validator->errors()], 422);
-    //     }
-
-    //     if ($request->has('title')) {
-    //         $task->title = $request->input('title');
-    //     }
-
-    //     if ($request->has('description')) {
-    //         $task->description = $request->input('description');
-    //     }
-
-    //     $task->save();
-
-    //     return response()->json(['message' => 'Tarea actualizada correctamente', 'task' => $task], 200);
-    // }
-
-    public function deleteTaskById($id) {
-        $task = Task::find($id);
-        if (!$task) {
-            return response()->json(['message' => 'Tarea no encontrada'], 404);
-        }
-
+        // Eliminar la tarea
         $task->delete();
 
+        // Responder con el mensaje de éxito
         return response()->json(['message' => 'Tarea eliminada correctamente'], 200);
     }
-
-
-
 }
