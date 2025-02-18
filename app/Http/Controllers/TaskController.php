@@ -24,7 +24,7 @@ class TaskController extends Controller
         $task = new Task([
             'title' => $request->input('title'),
             'description' => $request->input('description'),
-            'user_id' => auth()->id(),
+            'user_id' => auth('api')->id(),
         ]);
 
         $task->save();
@@ -62,7 +62,7 @@ class TaskController extends Controller
             return response()->json(['message' => 'Tarea no encontrada'], 404);
         }
 
-        $user = auth()->user();
+        $user = auth('api')->user();
 
         if ($task->user_id !== $user->id && $user->role !== 'admin') {
             return response()->json(['message' => 'No autorizado para editar esta tarea'], 403);
@@ -92,26 +92,20 @@ class TaskController extends Controller
 
 
     public function deleteTaskById($id) {
-        // Buscar la tarea por ID
         $task = Task::find($id);
 
-        // Verificar si la tarea existe
         if (!$task) {
             return response()->json(['message' => 'Tarea no encontrada'], 404);
         }
 
-        // Obtener el usuario autenticado
-        $user = auth()->user();
+        $user = auth('api')->user();
 
-        // Verificar si el usuario es el propietario de la tarea o si es un administrador
         if ($task->user_id !== $user->id && $user->role !== 'admin') {
             return response()->json(['message' => 'No autorizado para eliminar esta tarea'], 403);
         }
 
-        // Eliminar la tarea
         $task->delete();
 
-        // Responder con el mensaje de éxito
         return response()->json(['message' => 'Tarea eliminada correctamente'], 200);
     }
 }
